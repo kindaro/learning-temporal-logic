@@ -21,8 +21,12 @@ process Wire \in 1..3
         amount \in 1..account[sender];
 
     begin
-        Withdraw: account[sender] := account[sender] - amount;
-        Deposit: account[sender] := account[sender] + amount;
+        Transaction:
+            if amount <= account[sender]
+            then
+                account[sender] := account[sender] - amount;
+                Deposit: account[sender] := account[sender] + amount;
+            end if;
     end process;
 
 end algorithm;
