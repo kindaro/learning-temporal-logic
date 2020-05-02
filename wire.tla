@@ -11,6 +11,7 @@ variables
 
 define
     NoOverdrafts == \A person \in people: account[person] >= 0
+    EventuallyConsistent == <>[] (account["Alice"] + account["Robert"] = 10)
 end define;
 
 process Wire \in 1..3
