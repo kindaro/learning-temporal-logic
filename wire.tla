@@ -17,7 +17,8 @@ define
 end define;
 
 begin
-    skip;
+    Withdraw: account[sender] := account[sender] - amount;
+    Deposit: account[sender] := account[sender] + amount;
 end algorithm;
 *)
 
