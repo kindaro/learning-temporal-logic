@@ -10,7 +10,7 @@ variables
 
     sender = "Alice",
     receiver = "Robert",
-    amount = 3;
+    amount \in 1..10;
 
 define
     NoOverdrafts == \A person \in people: account[person] >= 0
