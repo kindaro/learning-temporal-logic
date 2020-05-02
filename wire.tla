@@ -18,7 +18,7 @@ process Wire \in 1..3
     variables
         sender = "Alice",
         receiver = "Robert",
-        amount \in 1..account[sender];
+        amount \in 1..10;
 
     begin
         Transaction:
