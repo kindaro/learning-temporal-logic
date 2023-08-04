@@ -2,29 +2,23 @@
 EXTENDS Naturals
 CONSTANT data
 example_data == {"a", "b", "c", "d"}
-VARIABLE value, ready, acknowledge
+VARIABLE channel
 
-type_invariant ==
-               /\ value \in data
-               /\ ready \in {0, 1}
-               /\ acknowledge \in {0, 1}
+type_invariant == channel \in [value : data, ready : {0, 1}, acknowledge : {0, 1}]
 
-initial ==
-        /\ value \in data
-        /\ ready = 0
-        /\ acknowledge = 0
+initial == type_invariant /\ channel.ready = channel.acknowledge
 
-send ==
-     /\ ready = acknowledge
-     /\ value' \in data
-     /\ ready' = 1 - ready
-     /\ UNCHANGED acknowledge
+send (given_value) ==
+     /\ channel.ready = channel.acknowledge
+     /\ channel' = [channel EXCEPT !.value = given_value, !.ready = 1 - @]
 
 receive ==
-        /\ ready /= acknowledge
-        /\ acknowledge' = 1 - acknowledge
-        /\ UNCHANGED <<value, ready>>
+        /\ channel.ready # channel.acknowledge
+        /\ channel' = [channel EXCEPT !.acknowledge = 1 - @]
 
-next == send \/ receive
-specification == initial /\ [][next]_<<value, ready, acknowledge>>
+next ==
+     \/ \E some_value \in data : send (some_value)
+     \/ receive
+
+specification == initial /\ [][next]_<<channel>>
 ====
