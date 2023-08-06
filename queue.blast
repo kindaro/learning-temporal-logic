@@ -4,6 +4,8 @@ EXTENDS Integers, Sequences, FiniteSets
 CONSTANT tasks, number_of_processors, queue_size_bound
 VARIABLE queue, running_tasks
 
+Length (sequence) == Len (sequence)
+
 enumerable_sequence (some_set, length_bound) ≔ UNION { [1 … length → some_set] : length ∈ 0 … length_bound }
 
 range_of_sequence (given_sequence) ≔ {given_sequence [index] : index ∈ DOMAIN given_sequence}
@@ -17,7 +19,8 @@ enumerate_set (given_set) ≔
               IN enumerate_set_function [given_set]
 
 type_invariant ≔
-               ∧ queue ∈ [queued_tasks : enumerable_sequence (tasks, queue_size_bound), number_of_running_tasks : Nat]
+               ∧ queue ∈ [ queued_tasks : enumerable_sequence (tasks, queue_size_bound)
+                         , number_of_running_tasks : Nat ]
                ∧ running_tasks ∈ SUBSET tasks
 
 properties ≔
@@ -29,14 +32,17 @@ initial_state ≔
 
 some_tasks_ended ≔
             ∃ ending_tasks ∈ SUBSET (running_tasks) :
-              ∃ prefix_of_queued_tasks ∈ enumerable_sequence (tasks, queue_size_bound), suffix_of_queued_tasks ∈ enumerable_sequence (tasks, queue_size_bound) :
-                 ∧ queue.queued_tasks = prefix_of_queued_tasks ∘ suffix_of_queued_tasks
-                 ∧ Len (prefix_of_queued_tasks) ≤ Cardinality (ending_tasks)
+              ∃ queued_tasks_to_run ∈ enumerable_sequence (tasks, queue_size_bound)
+              , queued_tasks_to_keep_waiting ∈ enumerable_sequence (tasks, queue_size_bound) :
+                 ∧ queue.queued_tasks = queued_tasks_to_run ∘ queued_tasks_to_keep_waiting
+                 ∧ Length (queued_tasks_to_run) ≤ Cardinality (ending_tasks)
                  ∧ (* We want to make sure that we queue as many tasks as we can. *)
-                     ∨ (Len (prefix_of_queued_tasks) + Cardinality (running_tasks \ ending_tasks) ≤ number_of_processors ∧ Len (suffix_of_queued_tasks) = 0)
-                     ∨ (Len (prefix_of_queued_tasks) + Cardinality (running_tasks \ ending_tasks) = number_of_processors ∧ Len (suffix_of_queued_tasks) > 0)
-                 ∧ queue' = [queue EXCEPT !.queued_tasks = suffix_of_queued_tasks, !.number_of_running_tasks = @ - Cardinality (ending_tasks)]
-                 ∧ running_tasks' = (running_tasks \ ending_tasks) ∪ range_of_sequence (prefix_of_queued_tasks)
+                     ∨ (Length (queued_tasks_to_run) + Cardinality (running_tasks \ ending_tasks) ≤ number_of_processors ∧ Length (queued_tasks_to_keep_waiting) = 0)
+                     ∨ (Length (queued_tasks_to_run) + Cardinality (running_tasks \ ending_tasks) = number_of_processors ∧ Length (queued_tasks_to_keep_waiting) > 0)
+                     (* Alternative implementation: Length (queued_tasks_to_keep_waiting) > 0 ⇒ Length (queued_tasks_to_run) + Cardinality (running_tasks \ ending_tasks) = number_of_processors *)
+                 ∧ queue' = [ queue EXCEPT !.queued_tasks = queued_tasks_to_keep_waiting
+                            , !.number_of_running_tasks = @ - Cardinality (ending_tasks) ]
+                 ∧ running_tasks' = (running_tasks \ ending_tasks) ∪ range_of_sequence (queued_tasks_to_run)
 
 tasks_added (given_tasks) ≔
   ∧ range_of_sequence (enumerate_set (given_tasks)) = given_tasks (* Delete this once I am sure this law holds? *)
@@ -45,7 +51,7 @@ tasks_added (given_tasks) ≔
                 ∧ given_tasks = tasks_to_run ∪ tasks_to_queue
                 ∧ tasks_to_run ∩ tasks_to_queue = { }
                 ∧ given_tasks ∩ (running_tasks ∪ range_of_sequence (queue.queued_tasks)) = { }
-                ∧ Len (queue.queued_tasks) + Cardinality (tasks_to_queue) < queue_size_bound
+                ∧ Length (queue.queued_tasks) + Cardinality (tasks_to_queue) < queue_size_bound
                 ∧ (* We want to make sure that we queue as many tasks as we can. *)
                     ∨ (Cardinality (tasks_to_run) + Cardinality (running_tasks) ≤ number_of_processors ∧ Cardinality (tasks_to_queue) = 0)
                     ∨ (Cardinality (tasks_to_run) + Cardinality (running_tasks) = number_of_processors ∧ Cardinality (tasks_to_queue) > 0)
@@ -57,6 +63,6 @@ next_state ≔ some_tasks_ended ∨ ∃ some_tasks ∈ SUBSET tasks : tasks_adde
 specification ≔ initial_state ∧ [][next_state]_⟨queue, running_tasks⟩
 
 respectful ≔ Cardinality (running_tasks) ≤ number_of_processors
-efficient ≔ Len (queue.queued_tasks) > 0 ⇒ Cardinality (running_tasks) = number_of_processors
+efficient ≔ Length (queue.queued_tasks) > 0 ⇒ Cardinality (running_tasks) = number_of_processors
 
 ====
