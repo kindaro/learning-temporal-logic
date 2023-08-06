@@ -33,8 +33,8 @@ some_tasks_ended ==
                  /\ queue.queued_tasks = prefix_of_queued_tasks \o suffix_of_queued_tasks
                  /\ Len (prefix_of_queued_tasks) <= Cardinality (ending_tasks)
                  /\ (* We want to make sure that we queue as many tasks as we can. *)
-                     \/ (Len (prefix_of_queued_tasks) + Cardinality (running_tasks) <= number_of_processors /\ Len (suffix_of_queued_tasks) = 0)
-                     \/ (Len (prefix_of_queued_tasks) + Cardinality (running_tasks) = number_of_processors /\ Len (suffix_of_queued_tasks) > 0)
+                     \/ (Len (prefix_of_queued_tasks) + Cardinality (running_tasks \ ending_tasks) <= number_of_processors /\ Len (suffix_of_queued_tasks) = 0)
+                     \/ (Len (prefix_of_queued_tasks) + Cardinality (running_tasks \ ending_tasks) = number_of_processors /\ Len (suffix_of_queued_tasks) > 0)
                  /\ queue' = [queue EXCEPT !.queued_tasks = suffix_of_queued_tasks, !.number_of_running_tasks = @ - Cardinality (ending_tasks)]
                  /\ running_tasks' = (running_tasks \ ending_tasks) \union range_of_sequence (prefix_of_queued_tasks)
 
@@ -56,8 +56,7 @@ next_state == some_tasks_ended \/ \E some_tasks \in SUBSET tasks : tasks_added (
 
 specification == initial_state /\ [][next_state]_<<queue, running_tasks>>
 
-invariant ==
-          /\ Cardinality (running_tasks) <= number_of_processors (* Safety. *)
-          /\ Len (queue.queued_tasks) > 0 => Cardinality (running_tasks) = number_of_processors (* Efficiency. *)
+respectful == Cardinality (running_tasks) <= number_of_processors
+efficient == Len (queue.queued_tasks) > 0 => Cardinality (running_tasks) = number_of_processors
 
 ====
