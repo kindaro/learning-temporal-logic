@@ -41,7 +41,7 @@ some_tasks_ended ≔
                      ∨ (Length (queued_tasks_to_run) + Cardinality (running_tasks \ ending_tasks) = number_of_processors ∧ Length (queued_tasks_to_keep_waiting) > 0)
                      (* Alternative implementation: Length (queued_tasks_to_keep_waiting) > 0 ⇒ Length (queued_tasks_to_run) + Cardinality (running_tasks \ ending_tasks) = number_of_processors *)
                  ∧ queue' = [ queue EXCEPT !.queued_tasks = queued_tasks_to_keep_waiting
-                            , !.number_of_running_tasks = @ - Cardinality (ending_tasks) ]
+                            , !.number_of_running_tasks = @ - Cardinality (ending_tasks) + Length (queued_tasks_to_run) ]
                  ∧ running_tasks' = (running_tasks \ ending_tasks) ∪ range_of_sequence (queued_tasks_to_run)
 
 tasks_added (given_tasks) ≔
