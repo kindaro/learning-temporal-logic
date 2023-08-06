@@ -35,7 +35,7 @@ drop (some_set) ==
   IN drop_function
 
 properties_of_helpers ≔
-               ∧ range_of_sequence (enumerate_set (range_of_sequence (queue.queued_tasks))) = range_of_sequence (queue.queued_tasks) (* Delete this once I am sure this law holds? *)
+               ∧ range_of_sequence (enumerate_set (range_of_sequence (queue.queued_tasks))) = range_of_sequence (queue.queued_tasks)
                ∧ take (STRING) [2, ⟨"a", "b", "c"⟩] = ⟨"a", "b"⟩
                ∧ take (STRING) [2, ⟨"a"⟩] = ⟨"a"⟩
                ∧ drop (STRING) [2, ⟨"a", "b", "c"⟩] = ⟨"c"⟩
